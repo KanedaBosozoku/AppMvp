@@ -26,5 +26,9 @@ project.nuget.cache
 *.GlobalUsings.g.cs
 *.editorconfig
 
+# MSBuild file lists
+*.FileListAbsolute.txt
+
+
 # VS Workspace
 VSWorkspaceState.json
