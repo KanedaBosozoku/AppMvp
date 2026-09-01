@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AppMvp.Application/AppMvp.ApplicationCore.csproj" />
+    <Project Path="src/AppMvp.Domain/AppMvp.Domain.csproj" />
+    <Project Path="src/AppMvp.Infrastructure/AppMvp.Infrastructure.csproj" Id="92c63b00-a60e-44d4-98b0-091243204039" />
+    <Project Path="src/AppMvp.Presentation/AppMvp.Presentation.csproj" />
+    <Project Path="src/AppMvp.UI/AppMvp.UI.csproj" />
+  </Folder>
+</Solution>
