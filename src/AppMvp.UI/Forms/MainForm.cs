@@ -10,37 +10,140 @@ using System.Windows.Forms;
 
 namespace AppMvp.UI.Forms
 {
+    //public partial class MainForm : Form
+    //{
+    //    private readonly IRegionHost? _regionHost;
+    //    private readonly IRegionNavigationPresenter? _nav;
+    //    private readonly MainFormViewModel? _viewModel;
+
+    //    // DESIGNER CONSTRUCTOR
+    //    protected MainForm()
+    //    {
+    //        throw new NotImplementedException("Design-time preview is not implemented yet.");
+    //        InitializeComponent();
+
+    //        bool isDesignTime =
+    //            LicenseManager.UsageMode == LicenseUsageMode.Designtime ||
+    //            (Site?.DesignMode ?? false);
+
+    //        if (isDesignTime)
+    //        {
+    //            LoadDesignTimePreview();
+    //            return;
+    //        }
+    //    }
+
+    //    // RUNTIME CONSTRUCTOR — NOT PUBLIC
+    //    public MainForm(MainFormViewModel vm, IRegionNavigationPresenter nav, IRegionHost regionHost)
+    //    {
+    //        InitializeComponent();
+    //        _regionHost = regionHost;
+    //        _viewModel = vm;
+    //        _nav = nav;
+    //        ConfigureRegions();
+
+    //        this.Shown += async (s, e) =>
+    //        {
+    //            await _nav!.NavigateToRegionAsync("ContentRegion", "PeopleView");
+    //        };
+    //    }
+
+
+    //    private void ConfigureRegions()
+    //    {
+    //        if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+    //            return;
+
+    //        _regionHost!.RegisterRegion("ContentRegion", pnlContentRegion);
+    //        _regionHost!.RegisterRegion("SidebarRegion", pnlSidebarRegion);
+    //        _regionHost!.RegisterRegion("HeaderRegion", pnlHeaderRegion);
+    //    }
+
+    //    private void LoadDesignTimePreview()
+    //    {
+    //        throw new NotImplementedException("Design-time preview is not implemented yet.");
+    //        // Header preview
+    //        pnlHeaderRegion.Controls.Add(new Label
+    //        {
+    //            Text = "Header Preview",
+    //            Dock = DockStyle.Fill,
+    //            TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+    //            Font = new System.Drawing.Font("Segoe UI", 14, System.Drawing.FontStyle.Bold)
+    //        });
+
+    //        // Sidebar preview
+    //        pnlSidebarRegion.Controls.Add(new Label
+    //        {
+    //            Text = "Sidebar Preview",
+    //            Dock = DockStyle.Fill,
+    //            TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+    //            Font = new System.Drawing.Font("Segoe UI", 12)
+    //        });
+
+    //        // Content preview
+    //        pnlContentRegion.Controls.Add(new Label
+    //        {
+    //            Text = "Content Preview",
+    //            Dock = DockStyle.Fill,
+    //            AutoSize = false,
+    //            TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+    //            Font = new System.Drawing.Font("Segoe UI", 12),
+    //            BackColor = System.Drawing.Color.Red
+    //        });
+    //    }
+
+    //    protected override void OnLoad(EventArgs e)
+    //    {
+    //        throw new NotImplementedException("Design-time preview is not implemented yet.");
+    //        base.OnLoad(e);
+
+    //        bool isDesignTime =
+    //            LicenseManager.UsageMode == LicenseUsageMode.Designtime ||
+    //            (Site?.DesignMode ?? false);
+
+    //        if (isDesignTime)
+    //        {
+    //            LoadDesignTimePreview();
+    //        }
+    //    }
+
+
+    //}
+
     public partial class MainForm : Form
     {
         private readonly IRegionHost? _regionHost;
         private readonly IRegionNavigationPresenter? _nav;
         private readonly MainFormViewModel? _viewModel;
 
-        // DESIGNER CONSTRUCTOR (no DI)
-        protected MainForm()
+
+        // DESIGNER CONSTRUCTOR — must be public and parameterless
+        public MainForm()
         {
             InitializeComponent();
-
-            if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
-            {
-                LoadDesignTimePreview();
-                return;
-            }
+            // Do NOT put preview logic here — designer wipes it out
         }
 
-        // RUNTIME CONSTRUCTOR (DI)
+        // RUNTIME CONSTRUCTOR — internal so DI factory can call it
         public MainForm(MainFormViewModel vm, IRegionNavigationPresenter nav, IRegionHost regionHost)
         {
             InitializeComponent();
-            _regionHost = regionHost ?? throw new ArgumentNullException(nameof(regionHost));
-            _viewModel = vm ?? throw new ArgumentNullException(nameof(vm));
-            _nav = nav ?? throw new ArgumentNullException(nameof(nav));
+
+            _regionHost = regionHost;
+            _viewModel = vm;
+            _nav = nav;
+
             ConfigureRegions();
-            LoadInitialRegionContent();
+
+            this.Shown += async (s, e) =>
+            {
+                await _nav!.NavigateToRegionAsync("ContentRegion", "PeopleView");
+            };
         }
 
         private void ConfigureRegions()
         {
+            // Skip region registration in designer
             if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
                 return;
 
@@ -54,35 +157,33 @@ namespace AppMvp.UI.Forms
             // Header preview
             pnlHeaderRegion.Controls.Add(new Label
             {
-                Text = "Header Preview",
+                AutoSize = false,
                 Dock = DockStyle.Fill,
-                TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
-                Font = new System.Drawing.Font("Segoe UI", 14, System.Drawing.FontStyle.Bold)
+                Text = "Header Preview",
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI", 14, FontStyle.Bold)
             });
 
             // Sidebar preview
             pnlSidebarRegion.Controls.Add(new Label
             {
-                Text = "Sidebar Preview",
+                AutoSize = false,
                 Dock = DockStyle.Fill,
-                TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
-                Font = new System.Drawing.Font("Segoe UI", 12)
+                Text = "Sidebar Preview",
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI", 12)
             });
 
             // Content preview
             pnlContentRegion.Controls.Add(new Label
             {
-                Text = "Content Preview",
+                AutoSize = false,
                 Dock = DockStyle.Fill,
-                TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
-                Font = new System.Drawing.Font("Segoe UI", 12)
+                Text = "Content Preview",
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI", 12),
+                BackColor = Color.LightGray
             });
-        }
-
-        private void LoadInitialRegionContent()
-        {
-            // Initial region content: PeopleView
-            _nav.NavigateToRegion("ContentRegion", "PeopleView");
         }
     }
 }

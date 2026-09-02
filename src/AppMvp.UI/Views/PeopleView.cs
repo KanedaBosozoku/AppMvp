@@ -1,53 +1,114 @@
 ﻿using AppMvp.Presentation.Abstractions;
 using AppMvp.Presentation.ViewModels;
 using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace AppMvp.UI.Views
 {
-    public partial class PeopleView : UserControl, IViewWithParameter
+    public partial class PeopleView : UserControl, IViewWithParameter, AppMvp.Presentation.Abstractions.IAsyncView
     {
         private readonly PeopleViewModel _vm;
         private readonly CancellationTokenSource _cts = new();
+        private object? _pendingParameter;
 
         public PeopleView(PeopleViewModel vm)
         {
             InitializeComponent();
             _vm = vm;
 
-            _ = LoadPeopleAsync();   // fire-and-forget async load
+            // Subscribe to collection changes so the ListView stays in sync.
+            _vm.People.ListChanged += People_ListChanged;
+
+            // Do not start loading here. Activation is performed by the region navigator via IAsyncView.ActivateAsync.
             this.Disposed += (s, e) => Cleanup(); // Cancel any ongoing operations when the view is disposed
         }
 
-        private async Task LoadPeopleAsync()
+        public async System.Threading.Tasks.Task ActivateAsync(System.Threading.CancellationToken cancellationToken = default)
         {
             try
             {
-                await _vm.LoadPeopleAsync(_cts.Token);
+                using var linked = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellationToken);
+                var ct = linked.Token;
 
-                lstPeople.DataSource = _vm.People;
-                lstPeople.DisplayMember = nameof(PersonViewModel.DisplayName);
+                await _vm.LoadPeopleAsync(ct).ConfigureAwait(false);
+
+                // Update UI with loaded people
+                PopulateListView();
+
+                // If a parameter was supplied prior to activation, handle it now
+                if (_pendingParameter is int personId)
+                {
+                    await _vm.LoadPersonAsync(personId, ct).ConfigureAwait(false);
+                    SelectPersonInList(personId);
+                }
             }
             catch (OperationCanceledException)
             {
-                // ignore — view was disposed
+                // ignore — activation was cancelled
             }
         }
 
-        public async void ReceiveParameter(object parameter)
+
+
+
+        public void ReceiveParameter(object parameter)
         {
-            if (parameter is int personId)
+            // Store parameter so activation can process it (avoids async void).
+            _pendingParameter = parameter;
+        }
+
+        private void People_ListChanged(object? sender, ListChangedEventArgs e)
+        {
+            // Keep UI updates on the UI thread
+            if (this.IsDisposed) return;
+            if (this.InvokeRequired)
             {
-                try
-                {
-                    await _vm.LoadPersonAsync(personId, _cts.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                    // ignore — view was disposed
-                }
+                this.BeginInvoke(new Action(PopulateListView));
+            }
+            else
+            {
+                PopulateListView();
+            }
+        }
+
+        private void PopulateListView()
+        {
+            if (this.IsDisposed) return;
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new Action(PopulateListView));
+                return;
+            }
+
+            lstPeople.BeginUpdate();
+            lstPeople.Items.Clear();
+            foreach (var p in _vm.People)
+            {
+                var item = new ListViewItem(p.DisplayName) { Tag = p.Id };
+                item.SubItems.Add(p.Email);
+                lstPeople.Items.Add(item);
+            }
+            lstPeople.EndUpdate();
+        }
+
+        private void SelectPersonInList(int personId)
+        {
+            if (this.IsDisposed) return;
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new Action<int>(SelectPersonInList), personId);
+                return;
+            }
+
+            var item = lstPeople.Items.Cast<ListViewItem>().FirstOrDefault(i => (int?)i.Tag == personId || (i.Tag is int t && t == personId));
+            if (item != null)
+            {
+                item.Selected = true;
+                item.Focused = true;
+                item.EnsureVisible();
             }
         }
 
@@ -56,6 +117,7 @@ namespace AppMvp.UI.Views
             // 🔥 Your cleanup logic here
             _cts.Cancel();
             _cts.Dispose();
+            _vm.People.ListChanged -= People_ListChanged;
         }
     }
 }

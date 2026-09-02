@@ -8,11 +8,12 @@ namespace AppMvp.Domain.Entities
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
-
-        public Person(int id, string name)
+        public string Email { get; set; } = string.Empty;
+        public Person(int id, string name, string email)
         {
             Id = id;
             Name = name;
+            Email = email;
         }
     }
 }

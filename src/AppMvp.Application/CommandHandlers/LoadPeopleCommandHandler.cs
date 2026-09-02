@@ -24,7 +24,7 @@ namespace AppMvp.ApplicationCore.CommandHandlers
         public async Task<Unit> Handle(LoadPeopleCommand command, CancellationToken ct)
         {
             var people = await _repo.GetAllAsync(ct);
-            var dtos = people.Select(p => new PersonDto(p.Id, p.Name)).ToList().AsReadOnly();
+            var dtos = people.Select(p => new PersonDto(p.Id, p.Name, p.Email)).ToList().AsReadOnly();
             await _eventBus.PublishAsync(new PeopleLoadedEvent(dtos));
 
             return Unit.Value;

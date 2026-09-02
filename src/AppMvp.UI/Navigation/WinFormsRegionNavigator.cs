@@ -60,9 +60,41 @@ namespace AppMvp.UI.Navigation
             if (parameter is not null && view is IViewWithParameter receiver)
                 receiver.ReceiveParameter(parameter);
 
+            if (region is Panel panel)
+            {
+                panel.BorderStyle = BorderStyle.None;
+            }
+
             region.Controls.Clear();
             region.Controls.Add(view);
             view.Dock = DockStyle.Fill;
+        }
+
+        public async System.Threading.Tasks.Task NavigateToRegionAsync(string regionName, string viewKey, object? parameter, System.Threading.CancellationToken cancellationToken = default)
+        {
+            var region = _regionHost.GetRegion(regionName) as Control
+                ?? throw new InvalidOperationException($"Region '{regionName}' not found.");
+
+            var viewType = _viewRegistry.Resolve(viewKey);
+
+            var view = (Control)_provider.GetRequiredService(viewType);
+
+            if (parameter is not null && view is IViewWithParameter receiver)
+                receiver.ReceiveParameter(parameter);
+
+            if (region is Panel panel)
+            {
+                panel.BorderStyle = BorderStyle.None;
+            }
+
+            region.Controls.Clear();
+            region.Controls.Add(view);
+            view.Dock = DockStyle.Fill;
+
+            if (view is IAsyncView asyncView)
+            {
+                await asyncView.ActivateAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 

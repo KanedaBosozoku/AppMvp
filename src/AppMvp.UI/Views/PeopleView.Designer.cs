@@ -28,20 +28,44 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.lstPeople = new System.Windows.Forms.ListBox();
-            this.SuspendLayout();
-
-            this.lstPeople.Dock = System.Windows.Forms.DockStyle.Fill;
-
-            this.Controls.Add(this.lstPeople);
-            this.Name = "PeopleView";
-            this.Size = new System.Drawing.Size(400, 300);
-
-            this.ResumeLayout(false);
+            lstPeople = new ListView();
+            colName = new ColumnHeader();
+            colEmail = new ColumnHeader();
+            SuspendLayout();
+            // 
+            // lstPeople
+            // 
+            lstPeople.Columns.AddRange(new ColumnHeader[] { colName, colEmail });
+            lstPeople.Dock = DockStyle.Fill;
+            lstPeople.FullRowSelect = true;
+            lstPeople.Location = new Point(0, 0);
+            lstPeople.Name = "lstPeople";
+            lstPeople.Size = new Size(400, 300);
+            lstPeople.TabIndex = 0;
+            lstPeople.UseCompatibleStateImageBehavior = false;
+            lstPeople.View = View.Details;
+            // 
+            // colName
+            // 
+            colName.Text = "Name";
+            colName.Width = 100;
+            // 
+            // colEmail
+            // 
+            colEmail.Text = "Email";
+            colEmail.Width = 150;
+            // 
+            // PeopleView
+            // 
+            Controls.Add(lstPeople);
+            Name = "PeopleView";
+            Size = new Size(400, 300);
+            ResumeLayout(false);
         }
 
         #endregion
-
-        private System.Windows.Forms.ListBox lstPeople;
+        private System.Windows.Forms.ListView lstPeople;
+        private System.Windows.Forms.ColumnHeader colName;
+        private ColumnHeader colEmail;
     }
 }

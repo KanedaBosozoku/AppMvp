@@ -37,7 +37,14 @@ static class Program
                 // ----------------------------
                 // FORMS
                 // ----------------------------
-                services.AddSingleton<MainForm>();
+                //services.AddSingleton<MainForm>();
+                services.AddSingleton<MainForm>(sp =>
+                    new MainForm(
+                        sp.GetRequiredService<MainFormViewModel>(),
+                        sp.GetRequiredService<IRegionNavigationPresenter>(),
+                        sp.GetRequiredService<IRegionHost>()
+                    ));
+
 
                 // ----------------------------
                 // VIEWS

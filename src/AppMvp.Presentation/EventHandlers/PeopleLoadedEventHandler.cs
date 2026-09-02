@@ -18,7 +18,7 @@ namespace AppMvp.Presentation.EventHandlers
 
         public Task Handle(PeopleLoadedEvent evt, CancellationToken ct)
         {
-            _vm.LoadPeople(evt.People);
+            //_vm.LoadPeople(evt.People);
             return Task.CompletedTask;
         }
     }

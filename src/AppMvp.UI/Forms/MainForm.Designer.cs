@@ -28,33 +28,111 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.pnlHeaderRegion = new System.Windows.Forms.Panel();
-            this.pnlSidebarRegion = new System.Windows.Forms.Panel();
-            this.pnlContentRegion = new System.Windows.Forms.Panel();
-
-            // Header region
-            this.pnlHeaderRegion.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnlHeaderRegion.Height = 60;
-
-            // Sidebar region
-            this.pnlSidebarRegion.Dock = System.Windows.Forms.DockStyle.Left;
-            this.pnlSidebarRegion.Width = 200;
-
-            // Content region
-            this.pnlContentRegion.Dock = System.Windows.Forms.DockStyle.Fill;
-
-            // Add to form
-            this.Controls.Add(this.pnlContentRegion);
-            this.Controls.Add(this.pnlSidebarRegion);
-            this.Controls.Add(this.pnlHeaderRegion);
-
-            this.Text = "Main Shell";
-            this.WindowState = FormWindowState.Maximized;
+            pnlHeaderRegion = new Panel();
+            lblPlaceHolderHeader = new Label();
+            pnlSidebarRegion = new Panel();
+            lblPlaceHolderSide = new Label();
+            pnlContentRegion = new Panel();
+            lblPlaceHolderContent = new Label();
+            lblPlaceHolder1 = new Label();
+            pnlHeaderRegion.SuspendLayout();
+            pnlSidebarRegion.SuspendLayout();
+            pnlContentRegion.SuspendLayout();
+            SuspendLayout();
+            // 
+            // pnlHeaderRegion
+            // 
+            pnlHeaderRegion.BorderStyle = BorderStyle.FixedSingle;
+            pnlHeaderRegion.Controls.Add(lblPlaceHolderHeader);
+            pnlHeaderRegion.Dock = DockStyle.Top;
+            pnlHeaderRegion.Location = new Point(0, 0);
+            pnlHeaderRegion.Name = "pnlHeaderRegion";
+            pnlHeaderRegion.Size = new Size(505, 34);
+            pnlHeaderRegion.TabIndex = 2;
+            // 
+            // lblPlaceHolderHeader
+            // 
+            lblPlaceHolderHeader.Dock = DockStyle.Fill;
+            lblPlaceHolderHeader.Location = new Point(0, 0);
+            lblPlaceHolderHeader.Name = "lblPlaceHolderHeader";
+            lblPlaceHolderHeader.Size = new Size(503, 32);
+            lblPlaceHolderHeader.TabIndex = 0;
+            lblPlaceHolderHeader.Text = "Header Preview";
+            lblPlaceHolderHeader.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // pnlSidebarRegion
+            // 
+            pnlSidebarRegion.BorderStyle = BorderStyle.FixedSingle;
+            pnlSidebarRegion.Controls.Add(lblPlaceHolderSide);
+            pnlSidebarRegion.Dock = DockStyle.Left;
+            pnlSidebarRegion.Location = new Point(0, 34);
+            pnlSidebarRegion.Name = "pnlSidebarRegion";
+            pnlSidebarRegion.Size = new Size(148, 340);
+            pnlSidebarRegion.TabIndex = 1;
+            // 
+            // lblPlaceHolderSide
+            // 
+            lblPlaceHolderSide.Dock = DockStyle.Fill;
+            lblPlaceHolderSide.Location = new Point(0, 0);
+            lblPlaceHolderSide.Name = "lblPlaceHolderSide";
+            lblPlaceHolderSide.Size = new Size(146, 338);
+            lblPlaceHolderSide.TabIndex = 0;
+            lblPlaceHolderSide.Text = "Sidebar Preview";
+            lblPlaceHolderSide.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // pnlContentRegion
+            // 
+            pnlContentRegion.BorderStyle = BorderStyle.FixedSingle;
+            pnlContentRegion.Controls.Add(lblPlaceHolderContent);
+            pnlContentRegion.Controls.Add(lblPlaceHolder1);
+            pnlContentRegion.Dock = DockStyle.Fill;
+            pnlContentRegion.Location = new Point(148, 34);
+            pnlContentRegion.Name = "pnlContentRegion";
+            pnlContentRegion.Size = new Size(357, 340);
+            pnlContentRegion.TabIndex = 0;
+            // 
+            // lblPlaceHolderContent
+            // 
+            lblPlaceHolderContent.Dock = DockStyle.Fill;
+            lblPlaceHolderContent.Location = new Point(0, 0);
+            lblPlaceHolderContent.Name = "lblPlaceHolderContent";
+            lblPlaceHolderContent.Size = new Size(355, 338);
+            lblPlaceHolderContent.TabIndex = 1;
+            lblPlaceHolderContent.Text = "Content Preview";
+            lblPlaceHolderContent.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // lblPlaceHolder1
+            // 
+            lblPlaceHolder1.Location = new Point(0, 0);
+            lblPlaceHolder1.Name = "lblPlaceHolder1";
+            lblPlaceHolder1.Size = new Size(0, 0);
+            lblPlaceHolder1.TabIndex = 0;
+            lblPlaceHolder1.TextAlign = ContentAlignment.MiddleCenter;
+            lblPlaceHolder1.Visible = false;
+            // 
+            // MainForm
+            // 
+            ClientSize = new Size(505, 374);
+            Controls.Add(pnlContentRegion);
+            Controls.Add(pnlSidebarRegion);
+            Controls.Add(pnlHeaderRegion);
+            Name = "MainForm";
+            Text = "Main Shell";
+            WindowState = FormWindowState.Maximized;
+            pnlHeaderRegion.ResumeLayout(false);
+            pnlSidebarRegion.ResumeLayout(false);
+            pnlContentRegion.ResumeLayout(false);
+            ResumeLayout(false);
         }
 
         private System.Windows.Forms.Panel pnlHeaderRegion;
         private System.Windows.Forms.Panel pnlSidebarRegion;
         private System.Windows.Forms.Panel pnlContentRegion;
         #endregion
+
+        private Label lblPlaceHolder1;
+        private Label lblPlaceHolderContent;
+        private Label lblPlaceHolderHeader;
+        private Label lblPlaceHolderSide;
     }
 }

@@ -6,6 +6,6 @@ namespace AppMvp.Presentation.Abstractions
 {
     public interface IRegionNavigator
     {
-        void NavigateToRegion(string regionName, string viewKey, object? parameter = null);
+        Task NavigateToRegionAsync(string regionName, string viewKey, object? parameter = null, CancellationToken cancellationToken = default);
     }
 }

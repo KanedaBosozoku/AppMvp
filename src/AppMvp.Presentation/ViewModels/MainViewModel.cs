@@ -23,9 +23,9 @@ namespace AppMvp.Presentation.ViewModels
         //    _nav.NavigateToRegion("ContentRegion", typeof(HomeView));
         //}
 
-        public void ShowPeople()
+        public async System.Threading.Tasks.Task ShowPeopleAsync()
         {
-            _nav.NavigateToRegion("ContentRegion", "PeopleView");
+            await _nav.NavigateToRegionAsync("ContentRegion", "PeopleView").ConfigureAwait(false);
         }
 
         //public void ShowOrders()

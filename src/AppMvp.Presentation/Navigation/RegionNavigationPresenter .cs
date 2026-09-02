@@ -14,9 +14,9 @@ namespace AppMvp.Presentation.Navigation
             _regionNavigator = regionNavigator;
         }
 
-        public void NavigateToRegion(string regionName, string viewKey, object? parameter = null)
+        public async System.Threading.Tasks.Task NavigateToRegionAsync(string regionName, string viewKey, object? parameter = null, System.Threading.CancellationToken cancellationToken = default)
         {
-            _regionNavigator.NavigateToRegion(regionName, viewKey, parameter);
+            await _regionNavigator.NavigateToRegionAsync(regionName, viewKey, parameter, cancellationToken).ConfigureAwait(false);
         }
     }
 }

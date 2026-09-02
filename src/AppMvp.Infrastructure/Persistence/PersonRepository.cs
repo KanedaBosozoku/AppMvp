@@ -10,13 +10,13 @@ namespace AppMvp.Infrastructure.Persistence
     {
         private readonly Dictionary<int, Person> _store = new()
         {
-            [1] = new Person(1, "Alice"),
-            [2] = new Person(2, "Bob"),
-            [3] = new Person(3, "Charlie"),
-            [4] = new Person(4, "Mikey"),
-            [5] = new Person(5, "Tommy"),
-            [6] = new Person(6, "Nala"),
-            [7] = new Person(7, "Winnie"),
+            [1] = new Person(1, "Alice", "alice@example.com"),
+            [2] = new Person(2, "Bob", "bob@example.com"),
+            [3] = new Person(3, "Charlie", "charlie@example.com"),
+            [4] = new Person(4, "Mikey", "mikey@example.com"),
+            [5] = new Person(5, "Tommy", "tommy@example.com"),
+            [6] = new Person(6, "Nala", "nala@example.com"),
+            [7] = new Person(7, "Winnie", "winnie@example.com"),
         };
 
         private int _nextId = 8;
