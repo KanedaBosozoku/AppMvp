@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+
 namespace AppMvp.Presentation.EventHandlers
 {
     public sealed class PeopleLoadedEventHandler : INotificationHandler<PeopleLoadedEvent>

@@ -2,6 +2,7 @@
 using AppMvp.Presentation.ViewModels;
 using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -12,15 +13,23 @@ namespace AppMvp.UI.Views
     {
         private readonly PeopleViewModel _vm;
         private readonly CancellationTokenSource _cts = new();
+        private readonly BindingSource _bindingSource = new();
         private object? _pendingParameter;
 
         public PeopleView(PeopleViewModel vm)
         {
             InitializeComponent();
             _vm = vm;
+            // Bind the BindingList<PersonViewModel> to a BindingSource and set as DataGridView DataSource.
+            _bindingSource.DataSource = _vm.People;
 
-            // Subscribe to collection changes so the ListView stays in sync.
-            _vm.People.ListChanged += People_ListChanged;
+            dgvPeople.AutoGenerateColumns = false;
+            // map columns (columns created in designer)
+            colId.DataPropertyName = nameof(PersonViewModel.Id);
+            colName.DataPropertyName = nameof(PersonViewModel.DisplayName);
+            ColumnEmail.DataPropertyName = nameof(PersonViewModel.Email);
+
+            dgvPeople.DataSource = _bindingSource;
 
             // Do not start loading here. Activation is performed by the region navigator via IAsyncView.ActivateAsync.
             this.Disposed += (s, e) => Cleanup(); // Cancel any ongoing operations when the view is disposed
@@ -34,15 +43,11 @@ namespace AppMvp.UI.Views
                 var ct = linked.Token;
 
                 await _vm.LoadPeopleAsync(ct).ConfigureAwait(false);
-
-                // Update UI with loaded people
-                PopulateListView();
-
-                // If a parameter was supplied prior to activation, handle it now
+                // DataGridView is bound to the BindingList; it will update automatically.
                 if (_pendingParameter is int personId)
                 {
                     await _vm.LoadPersonAsync(personId, ct).ConfigureAwait(false);
-                    SelectPersonInList(personId);
+                    SelectPersonInGrid(personId);
                 }
             }
             catch (OperationCanceledException)
@@ -60,55 +65,25 @@ namespace AppMvp.UI.Views
             _pendingParameter = parameter;
         }
 
-        private void People_ListChanged(object? sender, ListChangedEventArgs e)
-        {
-            // Keep UI updates on the UI thread
-            if (this.IsDisposed) return;
-            if (this.InvokeRequired)
-            {
-                this.BeginInvoke(new Action(PopulateListView));
-            }
-            else
-            {
-                PopulateListView();
-            }
-        }
-
-        private void PopulateListView()
+        private void SelectPersonInGrid(int personId)
         {
             if (this.IsDisposed) return;
             if (this.InvokeRequired)
             {
-                this.BeginInvoke(new Action(PopulateListView));
+                this.BeginInvoke(new Action<int>(SelectPersonInGrid), personId);
                 return;
             }
 
-            lstPeople.BeginUpdate();
-            lstPeople.Items.Clear();
-            foreach (var p in _vm.People)
+            // Find index in the BindingList
+            var index = _vm.People.Select((p, i) => new { p, i }).FirstOrDefault(x => x.p.Id == personId)?.i ?? -1;
+            if (index >= 0 && index < dgvPeople.Rows.Count)
             {
-                var item = new ListViewItem(p.DisplayName) { Tag = p.Id };
-                item.SubItems.Add(p.Email);
-                lstPeople.Items.Add(item);
-            }
-            lstPeople.EndUpdate();
-        }
-
-        private void SelectPersonInList(int personId)
-        {
-            if (this.IsDisposed) return;
-            if (this.InvokeRequired)
-            {
-                this.BeginInvoke(new Action<int>(SelectPersonInList), personId);
-                return;
-            }
-
-            var item = lstPeople.Items.Cast<ListViewItem>().FirstOrDefault(i => (int?)i.Tag == personId || (i.Tag is int t && t == personId));
-            if (item != null)
-            {
-                item.Selected = true;
-                item.Focused = true;
-                item.EnsureVisible();
+                var row = dgvPeople.Rows[index];
+                if (row != null)
+                {
+                    row.Selected = true;
+                    dgvPeople.CurrentCell = row.Cells.Cast<DataGridViewCell>().FirstOrDefault(c => c.Visible) ?? row.Cells[0];
+                }
             }
         }
 
@@ -117,7 +92,7 @@ namespace AppMvp.UI.Views
             // 🔥 Your cleanup logic here
             _cts.Cancel();
             _cts.Dispose();
-            _vm.People.ListChanged -= People_ListChanged;
+            _bindingSource.Dispose();
         }
     }
 }

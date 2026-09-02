@@ -12,6 +12,7 @@ using AppMvp.UI.Forms;
 using AppMvp.UI.Navigation;
 using AppMvp.UI.Registry;
 using AppMvp.UI.Views;
+using AppMvp.Presentation.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
@@ -37,13 +38,14 @@ static class Program
                 // ----------------------------
                 // FORMS
                 // ----------------------------
-                //services.AddSingleton<MainForm>();
-                services.AddSingleton<MainForm>(sp =>
-                    new MainForm(
-                        sp.GetRequiredService<MainFormViewModel>(),
-                        sp.GetRequiredService<IRegionNavigationPresenter>(),
-                        sp.GetRequiredService<IRegionHost>()
-                    ));
+                services.AddSingleton<MainForm>();
+                //services.AddSingleton<MainForm>(sp =>
+                //    new MainForm(
+                //        sp.GetRequiredService<MainFormViewModel>(),
+                //        sp.GetRequiredService<IRegionNavigationPresenter>(),
+                //        sp.GetRequiredService<IRegionHost>(),
+                //        sp.GetRequiredService<IBusyIndicator>()
+                //    ));
 
 
                 // ----------------------------
@@ -78,6 +80,11 @@ static class Program
                 services.AddSingleton<IRegionNavigator, WinFormsRegionNavigator>();
                 services.AddSingleton<IRegionNavigationPresenter, RegionNavigationPresenter>();
 
+                // ----------------------------
+                // UI BUSY INDICATOR
+                // ----------------------------
+                services.AddSingleton<IBusyIndicator, BusyIndicatorService>();
+
 
                 // ----------------------------
                 // APPLICATION SERVICES
@@ -108,13 +115,14 @@ static class Program
 
         ApplicationConfiguration.Initialize();
 
-        //// Resolve MainViewModel from DI
-        //var vm = host.Services.GetRequiredService<MainViewModel>();
+        // Create a WindowsFormsSynchronizationContext now and register it with the busy indicator
+        // so UI components don't need to set it manually in their Shown handlers.
+        var wfContext = new System.Windows.Forms.WindowsFormsSynchronizationContext();
+        System.Threading.SynchronizationContext.SetSynchronizationContext(wfContext);
 
-        //// Create the form manually, injecting the ViewModel
-        //var form = new Form1(vm);
-
-        //Application.Run(form);
+        // Resolve MainForm and set the busy indicator's synchronization context before running the message loop
+        var busy = host.Services.GetRequiredService<AppMvp.Presentation.Abstractions.IBusyIndicator>();
+        busy.SetSynchronizationContext(System.Threading.SynchronizationContext.Current);
 
         var mainForm = host.Services.GetRequiredService<MainForm>();
         Application.Run(mainForm);

@@ -115,6 +115,7 @@ namespace AppMvp.UI.Forms
         private readonly IRegionHost? _regionHost;
         private readonly IRegionNavigationPresenter? _nav;
         private readonly MainFormViewModel? _viewModel;
+        private readonly IBusyIndicator? _busyIndicator;
 
 
         // DESIGNER CONSTRUCTOR — must be public and parameterless
@@ -125,13 +126,21 @@ namespace AppMvp.UI.Forms
         }
 
         // RUNTIME CONSTRUCTOR — internal so DI factory can call it
-        public MainForm(MainFormViewModel vm, IRegionNavigationPresenter nav, IRegionHost regionHost)
+        public MainForm(MainFormViewModel vm, IRegionNavigationPresenter nav, IRegionHost regionHost, IBusyIndicator busyIndicator)
         {
             InitializeComponent();
 
             _regionHost = regionHost;
             _viewModel = vm;
             _nav = nav;
+            _busyIndicator = busyIndicator;
+
+            // Subscribe to busy indicator changes
+            if (_busyIndicator != null)
+            {
+                _busyIndicator.BusyStateChanged += BusyIndicator_BusyStateChanged;
+                this.Disposed += (s, e) => _busyIndicator.BusyStateChanged -= BusyIndicator_BusyStateChanged;
+            }
 
             ConfigureRegions();
 
@@ -139,6 +148,28 @@ namespace AppMvp.UI.Forms
             {
                 await _nav!.NavigateToRegionAsync("ContentRegion", "PeopleView");
             };
+        }
+
+        private void BusyIndicator_BusyStateChanged(object? sender, AppMvp.Presentation.Abstractions.BusyStateChangedEventArgs e)
+        {
+            // BusyIndicatorService now posts events to the captured UI SynchronizationContext,
+            // so handlers will run on the UI thread. Just apply the state directly.
+            if (this.IsDisposed) return;
+            ApplyBusyState(e);
+        }
+
+        private void ApplyBusyState(AppMvp.Presentation.Abstractions.BusyStateChangedEventArgs e)
+        {
+            try
+            {
+                toolStripStatusLabel1.Text = e.Message ?? (e.IsBusy ? "Working..." : "Ready");
+                toolStripProgressBar1.Visible = e.IsBusy;
+                toolStripProgressBar1.Style = e.IsBusy ? ProgressBarStyle.Marquee : ProgressBarStyle.Blocks;
+            }
+            catch
+            {
+                // ignore UI errors during shutdown
+            }
         }
 
         private void ConfigureRegions()
@@ -150,40 +181,6 @@ namespace AppMvp.UI.Forms
             _regionHost!.RegisterRegion("ContentRegion", pnlContentRegion);
             _regionHost!.RegisterRegion("SidebarRegion", pnlSidebarRegion);
             _regionHost!.RegisterRegion("HeaderRegion", pnlHeaderRegion);
-        }
-
-        private void LoadDesignTimePreview()
-        {
-            // Header preview
-            pnlHeaderRegion.Controls.Add(new Label
-            {
-                AutoSize = false,
-                Dock = DockStyle.Fill,
-                Text = "Header Preview",
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 14, FontStyle.Bold)
-            });
-
-            // Sidebar preview
-            pnlSidebarRegion.Controls.Add(new Label
-            {
-                AutoSize = false,
-                Dock = DockStyle.Fill,
-                Text = "Sidebar Preview",
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 12)
-            });
-
-            // Content preview
-            pnlContentRegion.Controls.Add(new Label
-            {
-                AutoSize = false,
-                Dock = DockStyle.Fill,
-                Text = "Content Preview",
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 12),
-                BackColor = Color.LightGray
-            });
         }
     }
 }

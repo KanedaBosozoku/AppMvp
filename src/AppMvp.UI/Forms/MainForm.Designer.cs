@@ -38,8 +38,27 @@
             pnlHeaderRegion.SuspendLayout();
             pnlSidebarRegion.SuspendLayout();
             pnlContentRegion.SuspendLayout();
+            statusStrip1 = new StatusStrip();
+            toolStripStatusLabel1 = new ToolStripStatusLabel();
+            toolStripProgressBar1 = new ToolStripProgressBar();
             SuspendLayout();
-            // 
+            // statusStrip1
+            //
+            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripProgressBar1 });
+            statusStrip1.Dock = DockStyle.Bottom;
+            statusStrip1.Location = new Point(0, 374 - statusStrip1.Height);
+            statusStrip1.Name = "statusStrip1";
+            statusStrip1.TabIndex = 3;
+            statusStrip1.Text = "statusStrip1";
+
+            toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            toolStripStatusLabel1.Text = "Ready";
+
+            toolStripProgressBar1.Name = "toolStripProgressBar1";
+            toolStripProgressBar1.Visible = false;
+            toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+
+            //
             // pnlHeaderRegion
             // 
             pnlHeaderRegion.BorderStyle = BorderStyle.FixedSingle;
@@ -116,12 +135,14 @@
             Controls.Add(pnlContentRegion);
             Controls.Add(pnlSidebarRegion);
             Controls.Add(pnlHeaderRegion);
+            Controls.Add(statusStrip1);
             Name = "MainForm";
             Text = "Main Shell";
             WindowState = FormWindowState.Maximized;
             pnlHeaderRegion.ResumeLayout(false);
             pnlSidebarRegion.ResumeLayout(false);
             pnlContentRegion.ResumeLayout(false);
+            statusStrip1.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -134,5 +155,8 @@
         private Label lblPlaceHolderContent;
         private Label lblPlaceHolderHeader;
         private Label lblPlaceHolderSide;
+        private StatusStrip statusStrip1;
+        private ToolStripStatusLabel toolStripStatusLabel1;
+        private ToolStripProgressBar toolStripProgressBar1;
     }
 }
