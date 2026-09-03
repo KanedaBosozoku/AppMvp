@@ -32,26 +32,20 @@ static class Program
                 // VIEWMODEL
                 // ----------------------------
                 services.AddSingleton<MainFormViewModel>();
-                services.AddTransient<PeopleViewModel>();
+                // Use a single shared PeopleViewModel instance so UI handlers and the view operate on the same viewmodel
+                services.AddSingleton<PeopleViewModel>();
                 // MainViewModel(IMediator mediator) is resolved automatically
 
                 // ----------------------------
                 // FORMS
                 // ----------------------------
                 services.AddSingleton<MainForm>();
-                //services.AddSingleton<MainForm>(sp =>
-                //    new MainForm(
-                //        sp.GetRequiredService<MainFormViewModel>(),
-                //        sp.GetRequiredService<IRegionNavigationPresenter>(),
-                //        sp.GetRequiredService<IRegionHost>(),
-                //        sp.GetRequiredService<IBusyIndicator>()
-                //    ));
-
 
                 // ----------------------------
                 // VIEWS
                 // ----------------------------         
                 services.AddTransient<PeopleView>();
+                services.AddTransient<PersonEditForm>();
 
 
                 // ----------------------------
@@ -66,11 +60,6 @@ static class Program
                     return registry;
                 });
 
-                // ----------------------------
-                // PRESENTERS
-                // ----------------------------
-                //services.AddSingleton<IPeoplePresenter, PeoplePresenter>();
-                // PeoplePresenter(MainViewModel vm) is resolved automatically
 
                 // ----------------------------
                 // NAVIGATION
@@ -84,6 +73,8 @@ static class Program
                 // UI BUSY INDICATOR
                 // ----------------------------
                 services.AddSingleton<IBusyIndicator, BusyIndicatorService>();
+                // UI Dispatcher (lazy capture of SynchronizationContext)
+                services.AddSingleton<AppMvp.Presentation.Abstractions.IUiDispatcher, AppMvp.UI.Services.UiDispatcher>();
 
 
                 // ----------------------------
@@ -103,6 +94,9 @@ static class Program
                 services.AddMediatR(cfg =>
                 {
                     cfg.RegisterServicesFromAssembly(typeof(LoadPeopleCommandHandler).Assembly);
+                    // Also register handlers from the Presentation and UI assemblies (handlers)
+                    cfg.RegisterServicesFromAssembly(typeof(AppMvp.Presentation.ViewModels.PeopleViewModel).Assembly);
+                    cfg.RegisterServicesFromAssembly(typeof(MainForm).Assembly);
                 });
 
                 // Optional hosted services
@@ -115,14 +109,15 @@ static class Program
 
         ApplicationConfiguration.Initialize();
 
-        // Create a WindowsFormsSynchronizationContext now and register it with the busy indicator
-        // so UI components don't need to set it manually in their Shown handlers.
+        // Create a WindowsFormsSynchronizationContext now and set it as the current context
         var wfContext = new System.Windows.Forms.WindowsFormsSynchronizationContext();
         System.Threading.SynchronizationContext.SetSynchronizationContext(wfContext);
 
-        // Resolve MainForm and set the busy indicator's synchronization context before running the message loop
+        // Resolve and configure services that depend on the UI synchronization context
         var busy = host.Services.GetRequiredService<AppMvp.Presentation.Abstractions.IBusyIndicator>();
         busy.SetSynchronizationContext(System.Threading.SynchronizationContext.Current);
+
+        var uiDispatcher = host.Services.GetRequiredService<AppMvp.Presentation.Abstractions.IUiDispatcher>();
 
         var mainForm = host.Services.GetRequiredService<MainForm>();
         Application.Run(mainForm);

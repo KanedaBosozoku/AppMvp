@@ -57,6 +57,10 @@
             toolStripProgressBar1.Name = "toolStripProgressBar1";
             toolStripProgressBar1.Visible = false;
             toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+            //
+            // toolStripCancelButton
+            //
+            // add cancel button to the status strip (created in code-behind)
 
             //
             // pnlHeaderRegion
@@ -158,5 +162,6 @@
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel toolStripStatusLabel1;
         private ToolStripProgressBar toolStripProgressBar1;
+        private ToolStripButton toolStripCancelButton;
     }
 }

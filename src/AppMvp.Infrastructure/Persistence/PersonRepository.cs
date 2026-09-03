@@ -31,7 +31,8 @@ namespace AppMvp.Infrastructure.Persistence
         public async Task<List<Person>>GetAllAsync(CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
-            await Task.Delay(4000);
+            // honor cancellation while simulating latency
+            await Task.Delay(2000, token);
             //return Task.FromResult(_store.Values.ToList());
             return new List<Person>(_store.Values);
         }

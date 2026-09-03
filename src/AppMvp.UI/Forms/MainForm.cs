@@ -141,6 +141,13 @@ namespace AppMvp.UI.Forms
                 _busyIndicator.BusyStateChanged += BusyIndicator_BusyStateChanged;
                 this.Disposed += (s, e) => _busyIndicator.BusyStateChanged -= BusyIndicator_BusyStateChanged;
             }
+            // Create and add cancel button to status strip and wire click
+            toolStripCancelButton = new ToolStripButton();
+            toolStripCancelButton.Name = "toolStripCancelButton";
+            toolStripCancelButton.Text = "Cancel";
+            toolStripCancelButton.Enabled = false;
+            toolStripCancelButton.Click += ToolStripCancelButton_Click;
+            statusStrip1.Items.Add(toolStripCancelButton);
 
             ConfigureRegions();
 
@@ -165,10 +172,23 @@ namespace AppMvp.UI.Forms
                 toolStripStatusLabel1.Text = e.Message ?? (e.IsBusy ? "Working..." : "Ready");
                 toolStripProgressBar1.Visible = e.IsBusy;
                 toolStripProgressBar1.Style = e.IsBusy ? ProgressBarStyle.Marquee : ProgressBarStyle.Blocks;
+                // enable cancel button when busy
+                try { toolStripCancelButton.Enabled = e.IsBusy; } catch { }
             }
             catch
             {
                 // ignore UI errors during shutdown
+            }
+        }
+
+        private void ToolStripCancelButton_Click(object? sender, EventArgs e)
+        {
+            if (this.IsDisposed) return;
+
+            var result = MessageBox.Show(this, "Cancel the current operation?", "Confirm Cancel", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (result == DialogResult.Yes)
+            {
+                try { _busyIndicator?.RequestCancel(); } catch { }
             }
         }
 
