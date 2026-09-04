@@ -1,6 +1,8 @@
 using AppMvp.Domain.Entities;
 using AppMvp.Domain.Repositories;
 using AppMvp.Presentation.Abstractions;
+using AppMvp.Presentation;
+using AppMvp.UI.Services;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +13,7 @@ namespace AppMvp.UI.Forms
     public class PersonEditForm : Form, IFormWithParameter
     {
         private readonly IPersonRepository _repo;
+        private readonly AppMvp.Presentation.Abstractions.IErrorDialog _errorDialog;
         private readonly AppMvp.Presentation.Abstractions.IBusyIndicator _busy;
         private int _personId;
         private TextBox txtName;
@@ -22,10 +25,11 @@ namespace AppMvp.UI.Forms
         private ErrorProvider _errors;
         private CancellationTokenSource? _loadCts;
 
-        public PersonEditForm(IPersonRepository repo, AppMvp.Presentation.Abstractions.IBusyIndicator busy)
+        public PersonEditForm(IPersonRepository repo, AppMvp.Presentation.Abstractions.IBusyIndicator busy, AppMvp.Presentation.Abstractions.IErrorDialog errorDialog)
         {
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
             _busy = busy ?? throw new ArgumentNullException(nameof(busy));
+            _errorDialog = errorDialog ?? throw new ArgumentNullException(nameof(errorDialog));
             InitializeComponent();
         }
 
@@ -45,6 +49,7 @@ namespace AppMvp.UI.Forms
         {
             _loadCts?.Cancel();
             _loadCts = new CancellationTokenSource();
+            
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(_loadCts.Token);
             try
             {
@@ -59,9 +64,16 @@ namespace AppMvp.UI.Forms
             {
                 // cancelled - ignore
             }
-            catch
+            catch (Exception ex)
             {
-                MessageBox.Show(this, "Failed to load person.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                try
+                {
+                    await _errorDialog.ShowAsync("Failed to load person.", ex);
+                }
+                catch
+                {
+                    // Swallow errors showing the error dialog to avoid crashing the load path
+                }
             }
         }
 
@@ -108,7 +120,7 @@ namespace AppMvp.UI.Forms
             try
             {
                 // Begin a busy scope for saving so global busy indicator shows progress and can cancel
-                using var scope = _busy.Begin("Saving person…", "People.Edit");
+                using var scope = _busy.Begin("Saving person…", BusyScopes.PeopleEdit);
                 using var linked = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(scope.Token);
 
                 var person = new Person(_personId, txtName.Text.Trim(), txtEmail.Text.Trim());
@@ -117,9 +129,16 @@ namespace AppMvp.UI.Forms
                 DialogResult = DialogResult.OK;
                 Close();
             }
-            catch
+            catch (Exception ex)
             {
-                MessageBox.Show(this, "Failed to save person.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                try
+                {
+                    await _errorDialog.ShowAsync("Failed to save person.", ex);
+                }
+                catch
+                {
+                    // Swallow errors showing the error dialog to avoid crashing the save path
+                }
             }
             finally
             {

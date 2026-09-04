@@ -39,6 +39,12 @@ namespace AppMvp.Presentation.Abstractions
         /// </summary>
         void SetSynchronizationContext(System.Threading.SynchronizationContext? context);
 
+        /// <summary>
+        /// Return a snapshot of currently active busy scope ids. This is a best-effort
+        /// query used by UI components to determine initial state when they subscribe.
+        /// </summary>
+        System.Collections.Generic.IReadOnlyCollection<string> GetActiveScopeIds();
+
         event EventHandler<BusyStateChangedEventArgs>? BusyStateChanged;
     }
 }

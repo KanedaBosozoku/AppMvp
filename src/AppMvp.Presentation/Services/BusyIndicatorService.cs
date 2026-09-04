@@ -28,17 +28,11 @@ namespace AppMvp.Presentation.Services
         {
             var newCount = Interlocked.Increment(ref _count);
 
-            bool raise = false;
             lock (_sync)
             {
                 if (message != null)
                     _message = message;
-                if (newCount == 1)
-                    raise = true;
             }
-
-            if (raise)
-                OnBusyStateChanged(new BusyStateChangedEventArgs(true, Message));
 
             // Create a CTS for this scope and track it so RequestCancel can cancel active scopes
             var cts = new System.Threading.CancellationTokenSource();
@@ -55,6 +49,11 @@ namespace AppMvp.Presentation.Services
                     set.Add(cts);
                 }
             }
+
+            // Always notify subscribers of the updated busy state so they can update UI based on
+            // the active scope ids (for example when a People.Edit scope starts while other scopes remain).
+            // optional logging removed; consumers may use IBusyIndicator notifications
+            OnBusyStateChanged(new BusyStateChangedEventArgs(true, Message, GetActiveScopeIds()));
 
             return new Scope(this, cts, scopeId);
         }
@@ -78,7 +77,6 @@ namespace AppMvp.Presentation.Services
 
             var newCount = Interlocked.Decrement(ref _count);
 
-            bool raise = false;
             string? msg = null;
             lock (_sync)
             {
@@ -86,7 +84,6 @@ namespace AppMvp.Presentation.Services
                 {
                     _count = 0;
                     _message = null;
-                    raise = true;
                 }
                 else
                 {
@@ -94,8 +91,9 @@ namespace AppMvp.Presentation.Services
                 }
             }
 
-            if (raise)
-                OnBusyStateChanged(new BusyStateChangedEventArgs(false, msg, GetActiveScopeIds()));
+            // Always notify subscribers of the updated busy state so they can update UI based on
+            // the active scope ids (for example when a People.Edit scope ends but other scopes remain).
+            OnBusyStateChanged(new BusyStateChangedEventArgs(newCount > 0, msg, GetActiveScopeIds()));
         }
 
         private void OnBusyStateChanged(BusyStateChangedEventArgs e)
@@ -104,10 +102,12 @@ namespace AppMvp.Presentation.Services
             if (handler == null) return;
 
             var ctx = _syncContext;
+            // optional logging removed; consumers may use IBusyIndicator notifications
             if (ctx != null)
             {
-                // Post to the captured synchronization context so UI handlers run on UI thread
-                ctx.Post(state => handler(this, (BusyStateChangedEventArgs)state!), e);
+                // Dispatch to the captured synchronization context so UI handlers run on the UI thread.
+                // Use Send so the caller observes the updated UI state immediately (tests expect synchronous delivery).
+                try { ctx.Send(state => handler(this, (BusyStateChangedEventArgs)state!), e); } catch { }
             }
             else
             {
@@ -191,6 +191,18 @@ namespace AppMvp.Presentation.Services
                 _scopesById.Keys.CopyTo(keys, 0);
                 return keys;
             }
+        }
+
+        // Public API to satisfy IBusyIndicator.GetActiveScopeIds
+        public System.Collections.Generic.IReadOnlyCollection<string> GetActiveScopeIdsSnapshot()
+        {
+            return GetActiveScopeIds();
+        }
+
+        // Implement interface method name
+        System.Collections.Generic.IReadOnlyCollection<string> AppMvp.Presentation.Abstractions.IBusyIndicator.GetActiveScopeIds()
+        {
+            return GetActiveScopeIds();
         }
     }
 }

@@ -6,4 +6,7 @@
     <Project Path="src/AppMvp.Presentation/AppMvp.Presentation.csproj" />
     <Project Path="src/AppMvp.UI/AppMvp.UI.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PeopleViewTests/PeopleViewTests.csproj" />
+  </Folder>
 </Solution>

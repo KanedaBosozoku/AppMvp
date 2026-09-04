@@ -59,7 +59,7 @@ namespace AppMvp.Presentation.ViewModels
 
         public async Task LoadPeopleAsync(CancellationToken ct)
         {
-            using var scope = _busy.Begin("Loading people…");
+            using var scope = _busy.Begin("Loading people…", BusyScopes.PeopleRefresh);
             using var linked = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(ct, scope.Token);
             var token = linked.Token;
             try
@@ -138,7 +138,7 @@ namespace AppMvp.Presentation.ViewModels
 
         public async Task LoadPersonAsync(int id, CancellationToken ct)
         {
-            using var scope = _busy.Begin("Loading person…");
+            using var scope = _busy.Begin("Loading person…", BusyScopes.PeopleRefresh);
             using var linked = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(ct, scope.Token);
             var token = linked.Token;
             try
