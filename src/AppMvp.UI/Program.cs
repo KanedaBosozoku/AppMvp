@@ -1,23 +1,23 @@
 using AppMvp.ApplicationCore.CommandBus;
-using Microsoft.Extensions.Logging;
 using AppMvp.ApplicationCore.CommandHandlers;
 using AppMvp.ApplicationCore.EventBus;
-
 using AppMvp.Domain.Repositories;
 using AppMvp.Infrastructure.Persistence;
 using AppMvp.Presentation;
 using AppMvp.Presentation.Abstractions;
 using AppMvp.Presentation.Navigation;
+using AppMvp.Presentation.Services;
 using AppMvp.Presentation.ViewModels;
+using AppMvp.UI.Controls;
 using AppMvp.UI.Forms;
 using AppMvp.UI.Navigation;
 using AppMvp.UI.Registry;
 using AppMvp.UI.Views;
-using AppMvp.Presentation.Services;
-using Serilog;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Serilog;
 using System;
 using System.Windows.Forms;
 
@@ -70,8 +70,11 @@ static class Program
                     var vm = sp.GetRequiredService<PeopleViewModel>();
                     var busy = sp.GetRequiredService<AppMvp.Presentation.Abstractions.IBusyIndicator>();
                     var logger = sp.GetService<Microsoft.Extensions.Logging.ILogger<PeopleView>>();
-                    return new PeopleView(vm, busy, logger);
+                    var eventBus = sp.GetRequiredService<IApplicationEventBus>();
+                    var view = new PeopleView(vm, busy, logger);
+                    return view;
                 });
+                services.AddTransient<EmptyView>();
                 services.AddTransient<PersonEditForm>();
 
 
@@ -82,7 +85,7 @@ static class Program
                 {
                     var registry = new ViewRegistry();
                     registry.Register<PeopleView>("PeopleView");
-                    //registry.Register<OrdersView>("OrdersView");
+                    registry.Register<EmptyView>("EmptyView");
                     //registry.Register<SettingsView>("SettingsView");
                     return registry;
                 });
@@ -95,6 +98,16 @@ static class Program
                 services.AddSingleton<IRegionHost, WinFormsRegionHost>();
                 services.AddSingleton<IRegionNavigator, WinFormsRegionNavigator>();
                 services.AddSingleton<IRegionNavigationPresenter, RegionNavigationPresenter>();
+                services.AddTransient<NavigationControl>(sp =>
+                {
+                    var nav = sp.GetRequiredService<IRegionNavigator>();
+                    var busy = sp.GetRequiredService<IBusyIndicator>();
+                    var eventBus = sp.GetRequiredService<IApplicationEventBus>();
+                    return new NavigationControl(nav, busy, eventBus);
+                });
+
+                // Provide a factory for NavigationControl so consumers can create multiple instances without service locator
+                services.AddTransient<Func<NavigationControl>>(sp => () => sp.GetRequiredService<NavigationControl>());
 
                 // ----------------------------
                 // UI BUSY INDICATOR
@@ -155,11 +168,11 @@ static class Program
         var errorDialog = host.Services.GetRequiredService<AppMvp.Presentation.Abstractions.IErrorDialog>();
         AppMvp.UI.Services.ErrorReporter.SetErrorDialog(errorDialog);
 
-        var loggerFactory = host.Services.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
+        var loggerFactory    = host.Services.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
         var globalLogger = loggerFactory.CreateLogger("AppMvp.Global");
 
         // Global UI thread exception handler -> show error dialog via ErrorReporter
-        Application.ThreadException += (s, e) =>
+        System.Windows.Forms.Application.ThreadException += (s, e) =>
         {
             try
             {
@@ -196,7 +209,7 @@ static class Program
         var mainForm = host.Services.GetRequiredService<MainForm>();
         try
         {
-            Application.Run(mainForm);
+            System.Windows.Forms.Application.Run(mainForm);
         }
         finally
         {
